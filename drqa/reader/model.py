@@ -32,6 +32,8 @@ class DocReader(object):
     def __init__(self, args, word_dict, feature_dict,
                  state_dict=None, normalize=True):
         # Book-keeping.
+        print(args.embedding_dim)
+        args.embedding_dim = 300
         self.args = args
         self.word_dict = word_dict
         self.args.vocab_size = len(word_dict)
@@ -104,8 +106,10 @@ class DocReader(object):
         # When normalized, some words are duplicated. (Average the embeddings).
         vec_counts = {}
         with open(embedding_file) as f:
+            f.readline()
             for line in f:
                 parsed = line.rstrip().split(' ')
+                print(len(parsed), embedding.size())
                 assert(len(parsed) == embedding.size(1) + 1)
                 w = self.word_dict.normalize(parsed[0])
                 if w in words:

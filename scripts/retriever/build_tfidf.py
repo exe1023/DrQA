@@ -203,3 +203,4 @@ if __name__ == '__main__':
         'doc_dict': doc_dict
     }
     retriever.utils.save_sparse_csr(filename, tfidf, metadata)
+    retriever.utils.save_sparse_csr(os.path.join(args.out_dir, 'tfidf'), tfidf, metadata)

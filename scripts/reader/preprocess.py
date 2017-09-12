@@ -63,6 +63,7 @@ def load_dataset(path):
                 output['questions'].append(qa['question'])
                 output['qid2cid'].append(len(output['contexts']) - 1)
                 if 'answers' in qa:
+                    #print(qa['answers'])
                     output['answers'].append(qa['answers'])
     return output
 

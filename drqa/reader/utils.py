@@ -30,7 +30,7 @@ def load_data(args, filename, skip_no_answer=False):
     # Load JSON lines
     with open(filename) as f:
         examples = [json.loads(line) for line in f]
-
+    #print(examples)
     # Make case insensitive?
     if args.uncased_question or args.uncased_doc:
         for ex in examples:

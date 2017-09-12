@@ -68,10 +68,15 @@ def get_contents(filename):
     """Parse the contents of a file. Each line is a JSON encoded document."""
     global PREPROCESS_FN
     documents = []
+    seen_title = set()
     with open(filename) as f:
         for line in f:
             # Parse document
             doc = json.loads(line)
+            if doc['id'] in seen_title:
+                continue
+            else:
+                seen_title.add(doc['id'])
             # Maybe preprocess the document with custom function
             if PREPROCESS_FN:
                 doc = PREPROCESS_FN(doc)
@@ -79,7 +84,7 @@ def get_contents(filename):
             if not doc:
                 continue
             # Add the document
-            documents.append((utils.normalize(doc['id']), doc['text']))
+            documents.append((utils.normalize(doc['id']), doc['text'], doc['raw']))
     return documents
 
 
@@ -95,12 +100,13 @@ def store_contents(data_path, save_path, preprocess, num_workers=None):
         num_workers: Number of parallel processes to use when reading docs.
     """
     if os.path.isfile(save_path):
-        raise RuntimeError('%s already exists! Not overwriting.' % save_path)
+        os.remove(save_path)
+        #raise RuntimeError('%s already exists! Not overwriting.' % save_path)
 
     logger.info('Reading into database...')
     conn = sqlite3.connect(save_path)
     c = conn.cursor()
-    c.execute("CREATE TABLE documents (id PRIMARY KEY, text);")
+    c.execute("CREATE TABLE documents (id PRIMARY KEY, text, raw);")
 
     workers = ProcessPool(num_workers, initializer=init, initargs=(preprocess,))
     files = [f for f in iter_files(data_path)]
@@ -108,7 +114,7 @@ def store_contents(data_path, save_path, preprocess, num_workers=None):
     with tqdm(total=len(files)) as pbar:
         for pairs in tqdm(workers.imap_unordered(get_contents, files)):
             count += len(pairs)
-            c.executemany("INSERT INTO documents VALUES (?,?)", pairs)
+            c.executemany("INSERT INTO documents VALUES (?,?,?)", pairs)
             pbar.update()
     logger.info('Read %d docs.' % count)
     logger.info('Committing...')
